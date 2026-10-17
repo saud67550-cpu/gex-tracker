@@ -1,0 +1,35 @@
+name: Automated GEX Data Tracker
+
+on:
+  schedule:
+    # سيقوم بالعمل تلقائياً يومياً من الإثنين إلى الجمعة في تمام الساعة 9:00 مساءً بتوقيت مكة المكرمة
+    - cron: '0 18 * * 1-5'
+  workflow_dispatch: # يتيح لك تشغيل الكود يدوياً بنقرة زر في أي وقت
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: |
+        pip install playwright pandas
+        playwright install chromium
+
+    - name: Execute Script
+      run: python fetch_gex.py
+
+    - name: Commit and Push Updates
+      run: |
+        git config --global user.name "GitHub Action Bot"
+        git config --global user.email "actions@github.com"
+        git add gex_market_data.csv
+        git commit -m "تحديث تلقائي لبيانات الغاما اليومية" || exit 0
+        git push
